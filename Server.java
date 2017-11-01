@@ -1,5 +1,6 @@
 import java.net.*;
 import java.io.*;
+import java.util.*;
 
 public class Server {
       public static void startServer(int port) throws IOException {
@@ -59,6 +60,30 @@ public class Server {
             if (args.length != 1) {
                   System.out.println("Usage: java server <port>");
             } else {
+                  // Prompt user to enable/disable security properties
+                  Scanner reader = new Scanner(System.in);
+                  String confidentiality, integrity, authenticaion;
+                  
+                  System.out.println("Require confidentiality? (y or n)");
+                  while(true){
+                        confidentiality = reader.nextLine();
+                        if(confidentiality.equals("y") || confidentiality.equals("n")) break; 
+                        System.out.println("Invalid input, try again.");
+                  }
+                  System.out.println("Require integrity? (y or n)");
+                  while(true){
+                        integrity = reader.nextLine();
+                        if(integrity.equals("y") || integrity.equals("n")) break; 
+                        System.out.println("Invalid input, try again.");
+                  }
+                  System.out.println("Require authenticaion? (y or n)");
+                   while(true){
+                        authenticaion = reader.nextLine();
+                        if(authenticaion.equals("y") || authenticaion.equals("n")) break; 
+                        System.out.println("Invalid input, try again.");
+                  }
+                  reader.close();
+
                   int portNumber = Integer.parseInt(args[0]);
                   try {
                         startServer(portNumber);

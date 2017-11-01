@@ -1,5 +1,6 @@
 import java.net.*;
 import java.io.*;
+import java.util.*;
 
 public class Client {
       public static void startClient(String serverName, int serverPort) throws UnknownHostException, IOException {
@@ -55,6 +56,30 @@ public class Client {
             if (args.length != 2) {
                   System.out.println("Usage: java Client <host> <port>");
             } else {
+                  // Prompt user to enable/disable security properties
+                  Scanner reader = new Scanner(System.in);
+                  String confidentiality, integrity, authenticaion;
+                  
+                  System.out.println("Require confidentiality? (y or n)");
+                  while(true){
+                        confidentiality = reader.nextLine();
+                        if(confidentiality.equals("y") || confidentiality.equals("n")) break; 
+                        System.out.println("Invalid input, try again.");
+                  }
+                  System.out.println("Require integrity? (y or n)");
+                  while(true){
+                        integrity = reader.nextLine();
+                        if(integrity.equals("y") || integrity.equals("n")) break; 
+                        System.out.println("Invalid input, try again.");
+                  }
+                  System.out.println("Require authenticaion? (y or n)");
+                   while(true){
+                        authenticaion = reader.nextLine();
+                        if(authenticaion.equals("y") || authenticaion.equals("n")) break; 
+                        System.out.println("Invalid input, try again.");
+                  }
+                  reader.close();
+
                   String hostName = args[0];
                   int portNumber = Integer.parseInt(args[1]);
                   try {
