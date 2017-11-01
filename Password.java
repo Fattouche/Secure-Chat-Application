@@ -6,6 +6,8 @@ import java.util.*;
 import java.nio.file.*;
 import java.security.MessageDigest;
 
+
+//A helper file for comparing password entered with hashed password stored in secure file.
 class PasswordTools {
     public boolean validPassword(String password, Path path) {
         byte byteData[] = null;
