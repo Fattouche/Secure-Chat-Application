@@ -42,6 +42,7 @@ public class Server {
                                     System.out.println("client: " + s);
                                     if (msg.toString().equals("bye")) {
                                           System.out.println("Client closed connection");
+                                          server.close();
                                           break;
                                     }
                               }
