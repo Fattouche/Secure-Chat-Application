@@ -16,7 +16,6 @@ public class AES {
 		if(!Arrays.equals(m1, m2)) return false;
 		return true;
 	}
-
 	public static byte[] generateMAC(String message, String key) throws IOException {
 		try {
 			//Cast key to a byte array and generate a SecretKeySpec needed for mac.init
@@ -33,40 +32,38 @@ public class AES {
 			return null;
 		}
 	}
+	public static byte[] encrypt(String message, String key) throws IOException {
+		try {
+			// Generating IV Spec
+		    byte[] iv = new byte[ivSize];
+		    SecureRandom random = new SecureRandom();
+		    random.nextBytes(iv);
+		    IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
-    public static byte[] encrypt(String message, String key) throws IOException {
-    	try {
-    		// Generating IV Spec
-	        byte[] iv = new byte[ivSize];
-	        SecureRandom random = new SecureRandom();
-	        random.nextBytes(iv);
-	        IvParameterSpec ivSpec = new IvParameterSpec(iv);
+		    // Generate keySpec
+			SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
 
-	        // Generate keySpec
-	    	SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
+			// Create and initialize the cipher for encryption
+			Cipher aesCipher;
+			aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			aesCipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
 
-	    	// Create and initialize the cipher for encryption
-	    	Cipher aesCipher;
-	    	aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-	    	aesCipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
-
-	    	// Encrypt the cleartext
-	    	byte[] cleartext = message.getBytes();
-	    	byte[] ciphertext = aesCipher.doFinal(cleartext);
-	    	
-	    	//return IV + ciphertext
-	    	byte[] encryptedMessage = new byte[ivSize + ciphertext.length];
-	    	System.arraycopy(iv, 0, encryptedMessage, 0, ivSize);
-	    	System.arraycopy(ciphertext, 0, encryptedMessage, ivSize, ciphertext.length);
-	    	return encryptedMessage;
-	    }
-	    catch(Exception e) {
-	    	System.out.println("Error in AES.encrypt: " + e);
-	    	return null;
-	    }
-    }
-
-    public static String decrypt(byte[] encryptedMessage, String key) throws IOException {
+			// Encrypt the cleartext
+			byte[] cleartext = message.getBytes();
+			byte[] ciphertext = aesCipher.doFinal(cleartext);
+			
+			//return IV + ciphertext
+			byte[] encryptedMessage = new byte[ivSize + ciphertext.length];
+			System.arraycopy(iv, 0, encryptedMessage, 0, ivSize);
+			System.arraycopy(ciphertext, 0, encryptedMessage, ivSize, ciphertext.length);
+			return encryptedMessage;
+		}
+		catch(Exception e) {
+			System.out.println("Error in AES.encrypt: " + e);
+			return null;
+		}
+	}
+	public static String decrypt(byte[] encryptedMessage, String key) throws IOException {
 		try {
 			// Split the encrypted message into IV and Ciphertext
 			byte[] iv = new byte[ivSize];
@@ -93,7 +90,7 @@ public class AES {
 		}
 	}
 	
-    public static void main(String args[]) {
+	public static void main(String args[]) {
     	String message = "HELLO WORLD";
     	String key = "0123456789abcdef";
 
@@ -109,5 +106,5 @@ public class AES {
         	if (!message.equals(d)) System.out.println("No bueno");
     	} 
     	catch(Exception e) {}
-      }
+    }
 }
