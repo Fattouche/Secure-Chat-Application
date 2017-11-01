@@ -36,9 +36,9 @@ public class Client {
                   public void run() {
                         try {
                               while (true) {
-                                    byte[] msg = new byte[300];
-                                    serverMessage.read(msg);
-                                    String s = new String(msg);
+                                    byte[] msg = new byte[16*1024];
+                                    int count = serverMessage.read(msg);
+                                    String s = new String(msg,0,count,"US-ASCII");
                                     System.out.println("server: " + s);
                               }
                         } catch (IOException ioe) {
