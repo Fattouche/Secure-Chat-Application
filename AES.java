@@ -7,16 +7,16 @@ import java.security.SecureRandom;
 import java.io.*;
 import java.util.*;
 
-
 public class AES {
 	static private int ivSize = 16;
 	static private int keySize = 16;
 
 	public static Boolean compareMAC(byte[] m1, byte[] m2) throws IOException {
-		if(!Arrays.equals(m1, m2)) return false;
+		if (!Arrays.equals(m1, m2))
+			return false;
 		return true;
 	}
-	
+
 	public static byte[] generateMAC(String message, String key) throws IOException {
 		try {
 			//Cast key to a byte array and generate a SecretKeySpec needed for mac.init
@@ -27,12 +27,12 @@ public class AES {
 			mac.init(keySpec);
 			byte[] result = mac.doFinal(message.getBytes());
 			return result;
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			System.out.println("Error in AES.generateMAC: " + e);
 			return null;
 		}
 	}
+
 	public static byte[] encrypt(String message, String key) throws IOException {
 		try {
 			// Generating IV Spec
@@ -52,18 +52,18 @@ public class AES {
 			// Encrypt the cleartext
 			byte[] cleartext = message.getBytes();
 			byte[] ciphertext = aesCipher.doFinal(cleartext);
-			
+
 			//return IV + ciphertext
 			byte[] encryptedMessage = new byte[ivSize + ciphertext.length];
 			System.arraycopy(iv, 0, encryptedMessage, 0, ivSize);
 			System.arraycopy(ciphertext, 0, encryptedMessage, ivSize, ciphertext.length);
 			return encryptedMessage;
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			System.out.println("Error in AES.encrypt: " + e);
 			return null;
 		}
 	}
+
 	public static String decrypt(byte[] encryptedMessage, String key) throws IOException {
 		try {
 			// Split the encrypted message into IV and Ciphertext
@@ -84,8 +84,7 @@ public class AES {
 			// Encrypt the cleartext
 			byte[] cleartext = aesCipher.doFinal(ciphertext);
 			return new String(cleartext);
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			System.out.println("Error in AES.decrypt: " + e);
 			return null;
 		}
@@ -96,16 +95,16 @@ public class AES {
 	public static void main(String args[]) {
 		String message = "HELLO WORLD";
 		String key = "0123456789abcdef";
-
+	
 		try {
 			byte[] mac1 = generateMAC(message, key);
 			byte[] mac2 = generateMAC(message, key);
-
+	
 			byte[] e = encrypt(message, key);
 			String d = decrypt(e, key);
-
+	
 			if(!compareMAC(mac1, mac2)) System.out.println("No Bueno");
-
+	
 			if (!message.equals(d)) System.out.println("No bueno");
 		} catch(Exception e) {}
 	}*/
