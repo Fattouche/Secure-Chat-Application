@@ -16,6 +16,7 @@ public class AES {
 		if(!Arrays.equals(m1, m2)) return false;
 		return true;
 	}
+	
 	public static byte[] generateMAC(String message, String key) throws IOException {
 		try {
 			//Cast key to a byte array and generate a SecretKeySpec needed for mac.init
@@ -90,6 +91,8 @@ public class AES {
 		}
 	}
 
+	/*
+	THIS WAS USED FOR TESTING
 	public static void main(String args[]) {
 		String message = "HELLO WORLD";
 		String key = "0123456789abcdef";
@@ -105,5 +108,5 @@ public class AES {
 
 			if (!message.equals(d)) System.out.println("No bueno");
 		} catch(Exception e) {}
-	}
+	}*/
 }
