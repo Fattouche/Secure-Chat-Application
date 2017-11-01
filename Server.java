@@ -12,8 +12,8 @@ public class Server {
             System.out.println("Connected!");
 
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-            PrintWriter serverMessage = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader clientMessage = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            OutputStream serverMessage = socket.getOutputStream();
+            InputStream clientMessage = socket.getInputStream();
 
             Thread sendMessage = new Thread(new Runnable() {
                   @Override
@@ -23,8 +23,7 @@ public class Server {
 
                               while (true) {
                                     send = input.readLine();
-                                    serverMessage.println(send);
-                                    serverMessage.flush();
+                                    serverMessage.write(send.getBytes());
                               }
                         } catch (IOException ioe) {
                               System.out.println("Error closing ...");
@@ -35,12 +34,13 @@ public class Server {
             Thread readMessage = new Thread(new Runnable() {
                   @Override
                   public void run() {
-                        String recieve;
                         try {
                               while (true) {
-                                    recieve = clientMessage.readLine();
-                                    System.out.println("client: " + recieve);
-                                    if (recieve.toString().equals("bye")) {
+                                    byte[] msg = new byte[300];
+                                    clientMessage.read(msg);
+                                    String s = new String(msg);
+                                    System.out.println("client: " + s);
+                                    if (msg.toString().equals("bye")) {
                                           System.out.println("Client closed connection");
                                           break;
                                     }

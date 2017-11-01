@@ -8,21 +8,20 @@ public class Client {
             System.out.println("Connected!");
 
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-            PrintWriter clientMessage = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader serverMessage = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            OutputStream clientMessage = socket.getOutputStream();
+            InputStream serverMessage = socket.getInputStream();
 
             Thread sendMessage = new Thread(new Runnable() {
                   @Override
                   public void run() {
                         String send;
                         try {
-
                               while (true) {
                                     send = input.readLine();
-                                    clientMessage.println(send);
-                                    clientMessage.flush();
+                                    clientMessage.write(send.getBytes());
                                     if (send.toString().equals("bye")) {
                                           System.out.println("Closed Connection with Server");
+                                          socket.close();
                                           break;
                                     }
                               }
@@ -35,11 +34,12 @@ public class Client {
             Thread readMessage = new Thread(new Runnable() {
                   @Override
                   public void run() {
-                        String recieve;
                         try {
                               while (true) {
-                                    recieve = serverMessage.readLine();
-                                    System.out.println("server: " + recieve);
+                                    byte[] msg = new byte[300];
+                                    serverMessage.read(msg);
+                                    String s = new String(msg);
+                                    System.out.println("server: " + s);
                               }
                         } catch (IOException ioe) {
                               System.out.println("Error closing ...");
