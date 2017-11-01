@@ -35,12 +35,12 @@ public class AES {
 	public static byte[] encrypt(String message, String key) throws IOException {
 		try {
 			// Generating IV Spec
-		    byte[] iv = new byte[ivSize];
-		    SecureRandom random = new SecureRandom();
-		    random.nextBytes(iv);
-		    IvParameterSpec ivSpec = new IvParameterSpec(iv);
+			byte[] iv = new byte[ivSize];
+			SecureRandom random = new SecureRandom();
+			random.nextBytes(iv);
+			IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
-		    // Generate keySpec
+			// Generate keySpec
 			SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
 
 			// Create and initialize the cipher for encryption
