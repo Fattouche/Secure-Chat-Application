@@ -6,7 +6,6 @@ import java.util.*;
 import java.nio.file.*;
 import java.security.MessageDigest;
 
-
 //A helper file for comparing password entered with hashed password stored in secure file.
 class PasswordTools {
     public boolean validPassword(String password, Path path) {
@@ -25,16 +24,29 @@ class PasswordTools {
         }
         return false;
     }
+
+    void verifyPassword(Path path) {
+        Scanner reader = new Scanner(System.in);
+        System.out.println("What is your password?");
+        while (true) {
+            if (validPassword(reader.nextLine(), path)) {
+                System.out.println("Authenticated!");
+                break;
+            } else {
+                System.out.println("Incorrect password, try again.");
+            }
+        }
+    }
 }
 
 class ClientPassword extends PasswordTools {
-    boolean checkPassword(String password) {
-        return validPassword(password, Paths.get("client_private", "pass"));
+    void checkPassword() {
+        verifyPassword(Paths.get("client_private", "pass"));
     }
 }
 
 class ServerPassword extends PasswordTools {
-    boolean checkPassword(String password) {
-        return validPassword(password, Paths.get("server_private", "pass"));
+    void checkPassword() {
+        verifyPassword(Paths.get("server_private", "pass"));
     }
 }

@@ -37,9 +37,9 @@ public class Client {
                   public void run() {
                         try {
                               while (true) {
-                                    byte[] msg = new byte[16*1024];
+                                    byte[] msg = new byte[16 * 1024];
                                     int count = serverMessage.read(msg);
-                                    String s = new String(msg,0,count,"US-ASCII");
+                                    String s = new String(msg, 0, count, "US-ASCII");
                                     System.out.println("server: " + s);
                               }
                         } catch (IOException ioe) {
@@ -56,7 +56,12 @@ public class Client {
             if (args.length != 2) {
                   System.out.println("Usage: java Client <host> <port>");
             } else {
+                  ClientPassword passChecker = new ClientPassword();
                   Security security = new Security();
+
+                  if (security.authentication) {
+                        passChecker.checkPassword();
+                  }
 
                   String hostName = args[0];
                   int portNumber = Integer.parseInt(args[1]);
