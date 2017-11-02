@@ -1,6 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.nio.file.*;
 
 public class Client {
       public static void startClient(String serverName, int serverPort) throws UnknownHostException, IOException {
@@ -37,9 +38,9 @@ public class Client {
                   public void run() {
                         try {
                               while (true) {
-                                    byte[] msg = new byte[16*1024];
+                                    byte[] msg = new byte[16 * 1024];
                                     int count = serverMessage.read(msg);
-                                    String s = new String(msg,0,count,"US-ASCII");
+                                    String s = new String(msg, 0, count, "US-ASCII");
                                     System.out.println("server: " + s);
                               }
                         } catch (IOException ioe) {
@@ -57,6 +58,10 @@ public class Client {
                   System.out.println("Usage: java Client <host> <port>");
             } else {
                   Security security = new Security();
+
+                  if (security.authentication) {
+                        PasswordTools.verifyPassword(Paths.get("client_private", "pass"));
+                  }
 
                   String hostName = args[0];
                   int portNumber = Integer.parseInt(args[1]);

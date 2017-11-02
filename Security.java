@@ -3,8 +3,9 @@ import java.util.*;
 public class Security {
       public static Boolean confidentiality;
       public static Boolean integrity;
-      public static Boolean authenticaion;
-      public Security(){
+      public static Boolean authentication;
+
+      public Security() {
             checkUserInput();
       }
 
@@ -14,44 +15,41 @@ public class Security {
             String c, i, a;
 
             System.out.println("Require confidentiality? (y or n)");
-            while(true){
+            while (true) {
                   c = reader.nextLine();
-                  if(c.equals("y")){
+                  if (c.equals("y")) {
                         confidentiality = true;
                         break;
-                  }
-                  else if(c.equals("n")) {
+                  } else if (c.equals("n")) {
                         confidentiality = false;
                         break;
-                  } 
+                  }
                   System.out.println("Invalid input, try again.");
             }
 
             System.out.println("Require integrity? (y or n)");
-            while(true){
+            while (true) {
                   i = reader.nextLine();
-                  if(i.equals("y")){
+                  if (i.equals("y")) {
                         integrity = true;
                         break;
-                  }
-                  else if(i.equals("n")) {
+                  } else if (i.equals("n")) {
                         integrity = false;
                         break;
-                  } 
+                  }
                   System.out.println("Invalid input, try again.");
             }
 
-            System.out.println("Require authenticaion? (y or n)");
-            while(true){
+            System.out.println("Require authentication? (y or n)");
+            while (true) {
                   a = reader.nextLine();
-                  if(a.equals("y")){
-                        authenticaion = true;
+                  if (a.equals("y")) {
+                        authentication = true;
+                        break;
+                  } else if (a.equals("n")) {
+                        authentication = false;
                         break;
                   }
-                  else if(a.equals("n")) {
-                        authenticaion = false;
-                        break;
-                  } 
                   System.out.println("Invalid input, try again.");
             }
       }

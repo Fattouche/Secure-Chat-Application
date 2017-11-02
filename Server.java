@@ -1,6 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.nio.file.*;
 
 public class Server {
       public static void startServer(int port) throws IOException {
@@ -37,9 +38,9 @@ public class Server {
                   public void run() {
                         try {
                               while (true) {
-                                    byte[] msg = new byte[16*1024];
+                                    byte[] msg = new byte[16 * 1024];
                                     int count = clientMessage.read(msg);
-                                    String s = new String(msg,0,count,"US-ASCII");
+                                    String s = new String(msg, 0, count, "US-ASCII");
                                     System.out.println("client: " + s);
                                     if (s.equals("bye")) {
                                           System.out.println("Client closed connection");
@@ -61,7 +62,12 @@ public class Server {
             if (args.length != 1) {
                   System.out.println("Usage: java server <port>");
             } else {
+                  ServerPassword passChecker = new ServerPassword();
                   Security security = new Security();
+
+                  if (security.authentication) {
+                        PasswordTools.verifyPassword(Paths.get("server_private", "pass"));
+                  }
 
                   int portNumber = Integer.parseInt(args[0]);
                   try {
