@@ -1,6 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.nio.file.*;
 
 public class Client {
       public static void startClient(String serverName, int serverPort) throws UnknownHostException, IOException {
@@ -56,11 +57,10 @@ public class Client {
             if (args.length != 2) {
                   System.out.println("Usage: java Client <host> <port>");
             } else {
-                  ClientPassword passChecker = new ClientPassword();
                   Security security = new Security();
 
                   if (security.authentication) {
-                        passChecker.checkPassword();
+                        PasswordTools.verifyPassword(Paths.get("client_private", "pass"));
                   }
 
                   String hostName = args[0];

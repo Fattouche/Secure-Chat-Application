@@ -8,7 +8,7 @@ import java.security.MessageDigest;
 
 //A helper file for comparing password entered with hashed password stored in secure file.
 class PasswordTools {
-    public boolean validPassword(String password, Path path) {
+    public static boolean validPassword(String password, Path path) {
         byte byteData[] = null;
         byte toCompare[] = null;
         try {
@@ -25,7 +25,7 @@ class PasswordTools {
         return false;
     }
 
-    void verifyPassword(Path path) {
+    static void verifyPassword(Path path) {
         Scanner reader = new Scanner(System.in);
         System.out.println("What is your password?");
         while (true) {
@@ -36,17 +36,5 @@ class PasswordTools {
                 System.out.println("Incorrect password, try again.");
             }
         }
-    }
-}
-
-class ClientPassword extends PasswordTools {
-    void checkPassword() {
-        verifyPassword(Paths.get("client_private", "pass"));
-    }
-}
-
-class ServerPassword extends PasswordTools {
-    void checkPassword() {
-        verifyPassword(Paths.get("server_private", "pass"));
     }
 }

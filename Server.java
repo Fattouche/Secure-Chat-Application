@@ -1,6 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.nio.file.*;
 
 public class Server {
       public static void startServer(int port) throws IOException {
@@ -65,7 +66,7 @@ public class Server {
                   Security security = new Security();
 
                   if (security.authentication) {
-                        passChecker.checkPassword();
+                        PasswordTools.verifyPassword(Paths.get("server_private", "pass"));
                   }
 
                   int portNumber = Integer.parseInt(args[0]);
