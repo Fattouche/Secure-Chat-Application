@@ -1,5 +1,6 @@
 import java.net.*;
 import java.io.*;
+import java.util.*;
 
 public class Server {
       public static void startServer(int port) throws IOException {
@@ -59,6 +60,8 @@ public class Server {
             if (args.length != 1) {
                   System.out.println("Usage: java server <port>");
             } else {
+                  Security security = new Security();
+
                   int portNumber = Integer.parseInt(args[0]);
                   try {
                         startServer(portNumber);

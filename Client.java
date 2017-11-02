@@ -1,5 +1,6 @@
 import java.net.*;
 import java.io.*;
+import java.util.*;
 
 public class Client {
       public static void startClient(String serverName, int serverPort) throws UnknownHostException, IOException {
@@ -55,6 +56,8 @@ public class Client {
             if (args.length != 2) {
                   System.out.println("Usage: java Client <host> <port>");
             } else {
+                  Security security = new Security();
+
                   String hostName = args[0];
                   int portNumber = Integer.parseInt(args[1]);
                   try {
