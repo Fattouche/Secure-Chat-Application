@@ -15,6 +15,7 @@ public class Client {
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
             OutputStream clientStream = socket.getOutputStream();
             InputStream serverStream = socket.getInputStream();
+            Cryptography crypto = new Cryptography();
 
             if (invalidProtocol(serverStream, clientStream)) {
                   disconnect(input, serverStream, clientStream, socket);
@@ -32,8 +33,11 @@ public class Client {
                         try {
                               while (true) {
                                     send = input.readLine();
-                                    byte[] message = Cryptography.encrypt(send.getBytes(), key);
-                                    clientStream.write(message);
+                                    byte[] signature =  crypto.sign(send.getBytes(), Paths.get("client_private", "private.der") , security.authentication);
+                                    byte[] mac = crypto.generateMAC(send.getBytes(), key, security.integrity);
+                                    byte[] message = crypto.encrypt(send.getBytes(), key, security.confidentiality);
+                                    byte[] communication = crypto.format(message,signature,mac);
+                                    clientStream.write(communication);
                                     if (send.toString().equals("bye")) {
                                           disconnect(input, serverStream, clientStream, socket);
                                           break;
@@ -53,8 +57,11 @@ public class Client {
                                     byte[] msg = new byte[16 * 1024];
                                     int count = serverStream.read(msg);
                                     msg = Arrays.copyOf(msg, count);
-                                    String s = Cryptography.decrypt(msg, key);
-                                    System.out.println("decrypted server: " + s);
+                                    //Gurj code here
+                                   /* if(!Cryptography.verify(s, Paths.get("client_private", "p") , security.authentication)){
+                                          System.out.println("Signature of client does not match private key!");
+                                    }
+                                    System.out.println("server: " + s);*/
                               }
                         } catch (IOException ioe) {
                               System.out.println("Closed Connection with Server");

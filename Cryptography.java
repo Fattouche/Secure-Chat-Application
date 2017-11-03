@@ -11,17 +11,27 @@ import java.nio.file.*;
 public class Cryptography {
 	static private int ivSize = 16;
 	static private int keySize = 16;
+	static private PrivateKey privateKey;
+	static private PublicKey publicKey;
 
-	private static PublicKey readPublicKey(Path path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-	    X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(Files.readAllBytes(path));
-	    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-	    return keyFactory.generatePublic(publicSpec);       
+	private static PublicKey readPublicKey(Path path)
+			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+		if (publicKey == null) {
+			X509EncodedKeySpec publicSpec = new X509EncodedKeySpec(Files.readAllBytes(path));
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+			publicKey = keyFactory.generatePublic(publicSpec);
+		}
+		return publicKey;
 	}
 
-	private static PrivateKey readPrivateKey(Path path) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-	    PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Files.readAllBytes(path));
-	    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-	    return keyFactory.generatePrivate(keySpec);     
+	private static PrivateKey readPrivateKey(Path path)
+			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+		if (privateKey == null) {
+			PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Files.readAllBytes(path));
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+			privateKey = keyFactory.generatePrivate(keySpec);
+		}
+		return privateKey;
 	}
 
 	public static Boolean compareMAC(byte[] m1, byte[] m2) throws IOException {
@@ -30,15 +40,18 @@ public class Cryptography {
 		return true;
 	}
 
-	public static byte[] generateMAC(String message, String key) throws IOException {
+	public static byte[] generateMAC(byte[] message, byte[] key, boolean integrity) throws IOException {
 		try {
+			if (!integrity) {
+				return "".getBytes();
+			}
 			//Cast key to a byte array and generate a SecretKeySpec needed for mac.init
-			SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
+			SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
 			// Generate MAC
 			Mac mac = Mac.getInstance("HmacSHA256");
 			mac.init(keySpec);
-			byte[] result = mac.doFinal(message.getBytes());
+			byte[] result = mac.doFinal(message);
 			return result;
 		} catch (Exception e) {
 			System.out.println("Error in AES.generateMAC: " + e);
@@ -47,46 +60,67 @@ public class Cryptography {
 	}
 
 	public static byte[] digestMessage(byte[] message) {
-		try{
+		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-1");
 			digest.update(message);
 			byte[] messageDigest = digest.digest();
 			return messageDigest;
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println("Error in AES.digestMessage: " + e);
 			return null;
 		}
 	}
 
 	public static Boolean compareDigests(byte[] d1, byte[] d2) {
-		if (!Arrays.equals(d1, d2)) return false;
+		if (!Arrays.equals(d1, d2))
+			return false;
 		return true;
 	}
 
-	public static String sign(String plainText, PrivateKey privKey) throws Exception{
-		Signature signer = Signature.getInstance("SHA256withRSA");
-		signer.initSign(privKey);
-		signer.update(plainText.getBytes("UTF8"));
-
-		byte[] sign = signer.sign();
-
-		return Base64.getEncoder().encodeToString(sign);
-
-	}
-
-	public static Boolean verify(String plainText, String signature, PublicKey pubKey) throws Exception {
-		Signature verifier = Signature.getInstance("SHA256withRSA");
-		verifier.initVerify(pubKey);
-		verifier.update(plainText.getBytes("UTF8"));
-
-		byte [] signatureBytes = Base64.getDecoder().decode(signature);
-
-		return verifier.verify(signatureBytes);
-	}
-
-	public static byte[] encrypt(byte[] message, byte[] key) {
+	public static byte[] sign(byte[] plainText, Path path, boolean authenticity) {
+		byte[] sign=null;
 		try {
+			if (!authenticity) {
+				return plainText;
+			}
+			PrivateKey privKey = readPrivateKey(path);
+			Signature signer = Signature.getInstance("SHA256withRSA");
+			signer.initSign(privKey);
+			signer.update(plainText);
+
+			sign = signer.sign();
+		} catch (Exception e) {
+			System.out.println("Error in signing");
+		}
+		return sign;
+	}
+
+	public static Boolean verify(byte[] plainText, byte[] signature, Path path, boolean authenticity) {
+		byte[] signatureBytes = null;
+		Signature verifier = null;
+		boolean verified = false;
+		try {
+			if (!authenticity) {
+				return true;
+			}
+			PublicKey pubKey = readPublicKey(path);
+			verifier = Signature.getInstance("SHA256withRSA");
+			verifier.initVerify(pubKey);
+			verifier.update(plainText);
+
+			signatureBytes = Base64.getDecoder().decode(signature);
+			verified = verifier.verify(signatureBytes);
+		} catch (Exception e) {
+			System.out.println("Error in verify");
+		}
+		return verified;
+	}
+
+	public static byte[] encrypt(byte[] message, byte[] key, boolean encryption) {
+		try {
+			if (!encryption) {
+				return message;
+			}
 			// Generating IV Spec
 			byte[] iv = new byte[ivSize];
 			SecureRandom random = new SecureRandom();
@@ -117,20 +151,23 @@ public class Cryptography {
 		}
 	}
 
-	public static String decrypt(byte[] encryptedMessage, byte[] key) {
+	public static byte[] decrypt(byte[] message, byte[] key, boolean decryption) {
 		try {
+			if (!decryption) {
+				return message;
+			}
 			// Split the encrypted message into IV and Ciphertext
 			byte[] iv = new byte[ivSize];
 
-			System.out.println(encryptedMessage.length);
-			byte[] ciphertext = new byte[encryptedMessage.length - ivSize];
+			System.out.println(message.length);
+			byte[] ciphertext = new byte[message.length - ivSize];
 
-			System.arraycopy(encryptedMessage, 0, iv, 0, ivSize);
-			System.arraycopy(encryptedMessage, ivSize, ciphertext, 0, encryptedMessage.length - ivSize);
+			System.arraycopy(message, 0, iv, 0, ivSize);
+			System.arraycopy(message, ivSize, ciphertext, 0, message.length - ivSize);
 
 			// Create ivSpec and keySpec
 			IvParameterSpec ivSpec = new IvParameterSpec(iv);
-			key = Arrays.copyOf(digestMessage(key), 16);			
+			key = Arrays.copyOf(digestMessage(key), 16);
 			SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
 			// Create and initialize the cipher for encryption
@@ -140,29 +177,16 @@ public class Cryptography {
 
 			// Encrypt the cleartext
 			byte[] cleartext = aesCipher.doFinal(ciphertext);
-			return new String(cleartext);
+			return cleartext;
 		} catch (Exception e) {
 			System.out.println("Error in AES.decrypt: " + e);
 			return null;
 		}
 	}
-	
-	/*
-	// THIS IS USED FOR TESTING PURPOSED ONLY
-	public static void main(String args[]) {
-		try {
-			byte[] message = "HELLO WORLD".getBytes("UTF8");
-			byte[] digest = digestMessage(message);
-			// byte[] digest = message;
 
-			Path pvkpath = Paths.get("server_private", "private.der");
-			Path pubkpath = Paths.get("client_private", "publicServer.der");
-
-			byte[] a = createSignature(digest, pvkpath);
-	
-			if(!checkSignature(a, pubkpath, message)) System.out.println("No Bueno");
-		
-		} catch(Exception e) {}
+	public byte[] format(byte[] message, byte[] signature, byte[] mac) {
+		String delimeter = ";;;";
+		String communication = message.toString() + delimeter + signature.toString() + delimeter + mac.toString();
+		return communication.getBytes();
 	}
-	*/
 }

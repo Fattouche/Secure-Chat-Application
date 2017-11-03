@@ -43,6 +43,7 @@ class ClientHandler extends Thread {
       static boolean connected;
       static Security security;
       static byte[] key = null;
+      static Cryptography crypto;
 
       public ClientHandler(Socket socket, BufferedReader input, Security security) {
             this.socket = socket;
@@ -54,6 +55,8 @@ class ClientHandler extends Thread {
       public static void handleClient() throws IOException {
             serverStream = socket.getOutputStream();
             clientStream = socket.getInputStream();
+            crypto = new Cryptography();
+
             try {
                   if (invalidProtocol(clientStream, serverStream)) {
                         return;
@@ -74,8 +77,11 @@ class ClientHandler extends Thread {
                               while (connected) {
                                     send = input.readLine();
                                     if (!socket.isClosed()) {
-                                          encrypted = Cryptography.encrypt(send.getBytes(), key);
-                                          serverStream.write(encrypted);
+                                          byte[] signature =  crypto.sign(send.getBytes(), Paths.get("server_private", "private.der") , security.authentication);
+                                          byte[] mac = crypto.generateMAC(send.getBytes(), key, security.integrity);
+                                          byte[] message = crypto.encrypt(send.getBytes(), key, security.confidentiality);
+                                          byte[] communication = crypto.format(message,signature,mac);
+                                          serverStream.write(communication);
                                     }
                               }
                         } catch (IOException ioe) {
@@ -92,14 +98,14 @@ class ClientHandler extends Thread {
                                     byte[] msg = new byte[16 * 1024];
                                     int count = clientStream.read(msg);
                                     msg = Arrays.copyOf(msg, count);
-                                    String s = Cryptography.decrypt(msg, key);
-                                    System.out.println("decrypted client: " + s);
+                                    //Gurj code here
+                                   /* System.out.println("decrypted client: " + s);
                                     if (s.equals("bye")) {
                                           System.out.println("Client closed connection");
                                           disconnect();
                                           connected = false;
                                           break;
-                                    }
+                                    }*/
                               }
                         } catch (IOException ioe) {
                               System.out.println("Client closed connection");
