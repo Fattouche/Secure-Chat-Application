@@ -9,7 +9,6 @@ public class Server {
             if (args.length != 1) {
                   System.out.println("Usage: java server <port>");
             } else {
-                  ServerPassword passChecker = new ServerPassword();
                   Security security = new Security();
 
                   if (security.authentication) {
