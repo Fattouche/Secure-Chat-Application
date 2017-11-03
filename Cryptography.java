@@ -189,23 +189,4 @@ public class Cryptography {
 		String communication = message.toString() + delimeter + signature.toString() + delimeter + mac.toString();
 		return communication.getBytes();
 	}
-
-	/*
-	// THIS IS USED FOR TESTING PURPOSED ONLY
-	public static void main(String args[]) {
-		try {
-			byte[] message = "HELLO WORLD".getBytes("UTF8");
-			byte[] digest = digestMessage(message);
-			// byte[] digest = message;
-	
-			Path pvkpath = Paths.get("server_private", "private.der");
-			Path pubkpath = Paths.get("client_private", "publicServer.der");
-	
-			byte[] a = createSignature(digest, pvkpath);
-	
-			if(!checkSignature(a, pubkpath, message)) System.out.println("No Bueno");
-		
-		} catch(Exception e) {}
-	}
-	*/
 }
