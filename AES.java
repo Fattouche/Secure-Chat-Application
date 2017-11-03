@@ -50,7 +50,7 @@ public class AES {
 
 	public static byte[] digestMessage(byte[] message) {
 		try{
-			MessageDigest digest = MessageDigest.getInstance("SHA1");
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			digest.update(message);
 			byte[] messageDigest = digest.digest();
 			return messageDigest;
