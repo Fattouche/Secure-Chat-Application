@@ -48,7 +48,7 @@ public class Cryptography {
 
 	public static byte[] digestMessage(byte[] message) {
 		try{
-			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			MessageDigest digest = MessageDigest.getInstance("SHA-1");
 			digest.update(message);
 			byte[] messageDigest = digest.digest();
 			return messageDigest;
@@ -105,6 +105,7 @@ public class Cryptography {
 			IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
 			// Generate keySpec
+			key = Arrays.copyOf(digestMessage(key), 16);
 			SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
 			// Create and initialize the cipher for encryption
@@ -127,16 +128,20 @@ public class Cryptography {
 		}
 	}
 
-	public static byte[] decrypt(byte[] encryptedMessage, byte[] key) {
+	public static String decrypt(byte[] encryptedMessage, byte[] key) {
 		try {
 			// Split the encrypted message into IV and Ciphertext
 			byte[] iv = new byte[ivSize];
+
+			System.out.println(encryptedMessage.length);
 			byte[] ciphertext = new byte[encryptedMessage.length - ivSize];
+
 			System.arraycopy(encryptedMessage, 0, iv, 0, ivSize);
 			System.arraycopy(encryptedMessage, ivSize, ciphertext, 0, encryptedMessage.length - ivSize);
 
 			// Create ivSpec and keySpec
 			IvParameterSpec ivSpec = new IvParameterSpec(iv);
+			key = Arrays.copyOf(digestMessage(key), 16);			
 			SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
 			// Create and initialize the cipher for encryption
@@ -146,7 +151,7 @@ public class Cryptography {
 
 			// Encrypt the cleartext
 			byte[] cleartext = aesCipher.doFinal(ciphertext);
-			return cleartext;
+			return new String(cleartext);
 		} catch (Exception e) {
 			System.out.println("Error in AES.decrypt: " + e);
 			return null;
