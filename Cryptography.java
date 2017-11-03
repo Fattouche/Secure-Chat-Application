@@ -64,36 +64,25 @@ public class Cryptography {
 		return true;
 	}
 
-	public static byte[] createSignature(byte[] digest, Path privateKeyPath) {
-		try{
-			PrivateKey privateKey = readPrivateKey(privateKeyPath);
-			Cipher cipher = Cipher.getInstance("RSA");
-			cipher.init(Cipher.ENCRYPT_MODE, privateKey);
-			byte[] signedDigest = cipher.doFinal(digest);
-			return signedDigest;
-		}
-		catch (Exception e) {
-			System.out.println("Error in AES.createSignature: " + e);
-			return null;
-		}
+	public static String sign(String plainText, PrivateKey privKey) throws Exception{
+		Signature signer = Signature.getInstance("SHA256withRSA");
+		signer.initSign(privKey);
+		signer.update(plainText.getBytes("UTF8"));
+
+		byte[] sign = signer.sign();
+
+		return Base64.getEncoder().encodeToString(sign);
+
 	}
 
-	public static Boolean checkSignature(byte[] signature, Path publicKeyPath, byte[] message) {
-		try{
-			PublicKey publicKey = readPublicKey(publicKeyPath);
-			Cipher cipher = Cipher.getInstance("RSA");
-			cipher.init(Cipher.DECRYPT_MODE, publicKey);
-			byte[] digestFromSignature = cipher.doFinal(signature);
-			
-			byte[] digestFromMessage = digestMessage(message);
-			
-			if (Arrays.equals(digestFromMessage, digestFromSignature)) return true;
-			return false;
-		}
-		catch (Exception e) {
-			System.out.println("Error in AES.checkSignature: " + e);
-			return null;
-		}
+	public static Boolean verify(String plainText, String signature, PublicKey pubKey) throws Exception {
+		Signature verifier = Signature.getInstance("SHA256withRSA");
+		verifier.initVerify(pubKey);
+		verifier.update(plainText.getBytes("UTF8"));
+
+		byte [] signatureBytes = Base64.getDecoder().decode(signature);
+
+		return verifier.verify(signatureBytes);
 	}
 
 	public static byte[] encrypt(byte[] message, byte[] key) {
