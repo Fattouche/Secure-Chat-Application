@@ -83,7 +83,6 @@ public class AES {
 	public static Boolean checkSignature(byte[] signature, Path publicKeyPath, byte[] message) {
 		try{
 			PublicKey publicKey = readPublicKey(publicKeyPath);
-
 			Cipher cipher = Cipher.getInstance("RSA");
 			cipher.init(Cipher.DECRYPT_MODE, publicKey);
 			byte[] digestFromSignature = cipher.doFinal(signature);
@@ -156,26 +155,22 @@ public class AES {
 		}
 	}
 	
-	
+	/*
 	// THIS IS USED FOR TESTING PURPOSED ONLY
-
 	public static void main(String args[]) {
-		
-	
 		try {
 			byte[] message = "HELLO WORLD".getBytes("UTF8");
 			byte[] digest = digestMessage(message);
+			// byte[] digest = message;
 
-			Path pvk = Paths.get("server_private", "private.der");
-			Path pubk = Paths.get("client_private", "publicServer.der");
+			Path pvkpath = Paths.get("server_private", "private.der");
+			Path pubkpath = Paths.get("client_private", "publicServer.der");
 
-			byte[] a = createSignature(digest, pvk);
+			byte[] a = createSignature(digest, pvkpath);
 	
-			if(!checkSignature(digest, pubk, message)) System.out.println("No Bueno");
-	
-			// if (!message.equals(d)) System.out.println("No bueno");
+			if(!checkSignature(a, pubkpath, message)) System.out.println("No Bueno");
 		
 		} catch(Exception e) {}
 	}
-	
+	*/
 }
