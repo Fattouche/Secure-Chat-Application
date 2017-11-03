@@ -2,8 +2,6 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-// import java.security.spec.X509EncodedKeySpec;
-// import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.*;
 import java.security.*;
 import java.io.*;
