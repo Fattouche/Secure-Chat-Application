@@ -42,6 +42,7 @@ class ClientHandler extends Thread {
       static Socket socket;
       static boolean connected;
       static Security security;
+      static byte[] key = null;
 
       public ClientHandler(Socket socket, BufferedReader input, Security security) {
             this.socket = socket;
@@ -60,7 +61,6 @@ class ClientHandler extends Thread {
             } catch (IOException ioe) {
                   System.out.println("Client closed connection");
             }
-            byte[] key;
             if (security.confidentiality || security.integrity) {
                   key = DoServerDiffie.doServerDiffie(clientStream, serverStream);
             }
@@ -73,6 +73,7 @@ class ClientHandler extends Thread {
                               while (connected) {
                                     send = input.readLine();
                                     if (!socket.isClosed()) {
+                                          AES.encrypt(send, key);
                                           serverStream.write(send.getBytes());
                                     }
                               }
@@ -89,8 +90,8 @@ class ClientHandler extends Thread {
                               while (true) {
                                     byte[] msg = new byte[16 * 1024];
                                     int count = clientStream.read(msg);
-                                    String s = new String(msg, 0, count, "US-ASCII");
-                                    System.out.println("client: " + s);
+                                    String s = AES.decrypt(msg, key);
+                                    System.out.println("decrypted client: " + s);
                                     if (s.equals("bye")) {
                                           System.out.println("Client closed connection");
                                           disconnect();

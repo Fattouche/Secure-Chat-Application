@@ -5,7 +5,8 @@ import java.nio.file.*;
 
 public class Client {
       static Security security;
-
+      static byte[] key = null;
+      
       public static void startClient(String serverName, int serverPort) throws UnknownHostException, IOException {
             System.out.println("Trying to connect to host: " + serverName + ": " + serverPort);
             Socket socket = new Socket(serverName, serverPort);
@@ -20,7 +21,6 @@ public class Client {
                   return;
             }
 
-            byte[] key;
             if (security.confidentiality || security.integrity) {
                   key = DoClientDiffie.doClientDiffie(serverStream, clientStream);
             }
@@ -32,7 +32,8 @@ public class Client {
                         try {
                               while (true) {
                                     send = input.readLine();
-                                    clientStream.write(send.getBytes());
+                                    byte[] message = AES.encrypt(send, key);
+                                    clientStream.write(message);
                                     if (send.toString().equals("bye")) {
                                           disconnect(input, serverStream, clientStream, socket);
                                           break;
@@ -51,8 +52,8 @@ public class Client {
                               while (true) {
                                     byte[] msg = new byte[16 * 1024];
                                     int count = serverStream.read(msg);
-                                    String s = new String(msg, 0, count, "US-ASCII");
-                                    System.out.println("server: " + s);
+                                    String s = AES.decrypt(msg, key);
+                                    System.out.println("decrypted server: " + s);
                               }
                         } catch (IOException ioe) {
                               System.out.println("Closed Connection with Server");

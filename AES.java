@@ -33,7 +33,7 @@ public class AES {
 		}
 	}
 
-	public static byte[] encrypt(String message, String key) throws IOException {
+	public static byte[] encrypt(String message, byte[] key) throws IOException {
 		try {
 			// Generating IV Spec
 			byte[] iv = new byte[ivSize];
@@ -42,7 +42,7 @@ public class AES {
 			IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
 			// Generate keySpec
-			SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
+			SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
 			// Create and initialize the cipher for encryption
 			Cipher aesCipher;
@@ -64,7 +64,7 @@ public class AES {
 		}
 	}
 
-	public static String decrypt(byte[] encryptedMessage, String key) throws IOException {
+	public static String decrypt(byte[] encryptedMessage, byte[] key) throws IOException {
 		try {
 			// Split the encrypted message into IV and Ciphertext
 			byte[] iv = new byte[ivSize];
@@ -74,7 +74,7 @@ public class AES {
 
 			// Create ivSpec and keySpec
 			IvParameterSpec ivSpec = new IvParameterSpec(iv);
-			SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
+			SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
 			// Create and initialize the cipher for encryption
 			Cipher aesCipher;
