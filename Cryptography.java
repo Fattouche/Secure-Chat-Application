@@ -11,8 +11,8 @@ import java.nio.file.*;
 public class Cryptography {
 	static private int ivSize = 16;
 	static private int keySize = 16;
-	static private byte[] privateKey;
-	static private byte[] publicKey;
+	static private PrivateKey privateKey;
+	static private PublicKey publicKey;
 
 	private static PublicKey readPublicKey(Path path)
 			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -42,7 +42,7 @@ public class Cryptography {
 
 	public static byte[] generateMAC(byte[] message, byte[] key, boolean integrity) throws IOException {
 		try {
-			if(!integrity){
+			if (!integrity) {
 				return "".getBytes();
 			}
 			//Cast key to a byte array and generate a SecretKeySpec needed for mac.init
@@ -77,31 +77,43 @@ public class Cryptography {
 		return true;
 	}
 
-	public static byte[] sign(byte[] plainText, Path path, boolean authenticity) throws Exception {
-		if (!authenticity) {
-			return plainText;
-		}
-		PrivateKey privKey = readPrivateKey(path);
-		Signature signer = Signature.getInstance("SHA256withRSA");
-		signer.initSign(privKey);
-		signer.update(plainText);
+	public static byte[] sign(byte[] plainText, Path path, boolean authenticity) {
+		byte[] sign=null;
+		try {
+			if (!authenticity) {
+				return plainText;
+			}
+			PrivateKey privKey = readPrivateKey(path);
+			Signature signer = Signature.getInstance("SHA256withRSA");
+			signer.initSign(privKey);
+			signer.update(plainText);
 
-		byte[] sign = signer.sign();
+			sign = signer.sign();
+		} catch (Exception e) {
+			System.out.println("Error in signing");
+		}
 		return sign;
 	}
 
-	public static Boolean verify(byte[] plainText, byte[] signature, Path path, boolean authenticity) throws Exception {
-		if (!authenticity) {
-			return true;
+	public static Boolean verify(byte[] plainText, byte[] signature, Path path, boolean authenticity) {
+		byte[] signatureBytes = null;
+		Signature verifier = null;
+		boolean verified = false;
+		try {
+			if (!authenticity) {
+				return true;
+			}
+			PublicKey pubKey = readPublicKey(path);
+			verifier = Signature.getInstance("SHA256withRSA");
+			verifier.initVerify(pubKey);
+			verifier.update(plainText);
+
+			signatureBytes = Base64.getDecoder().decode(signature);
+			verified = verifier.verify(signatureBytes);
+		} catch (Exception e) {
+			System.out.println("Error in verify");
 		}
-		PublicKey pubKey = readPublicKey(path);
-		Signature verifier = Signature.getInstance("SHA256withRSA");
-		verifier.initVerify(pubKey);
-		verifier.update(plainText);
-
-		byte[] signatureBytes = Base64.getDecoder().decode(signature);
-
-		return verifier.verify(signatureBytes);
+		return verified;
 	}
 
 	public static byte[] encrypt(byte[] message, byte[] key, boolean encryption) {
@@ -139,7 +151,7 @@ public class Cryptography {
 		}
 	}
 
-	public static String decrypt(byte[] message, byte[] key, boolean decryption) {
+	public static byte[] decrypt(byte[] message, byte[] key, boolean decryption) {
 		try {
 			if (!decryption) {
 				return message;
@@ -165,7 +177,7 @@ public class Cryptography {
 
 			// Encrypt the cleartext
 			byte[] cleartext = aesCipher.doFinal(ciphertext);
-			return new String(cleartext);
+			return cleartext;
 		} catch (Exception e) {
 			System.out.println("Error in AES.decrypt: " + e);
 			return null;
@@ -174,7 +186,7 @@ public class Cryptography {
 
 	public byte[] format(byte[] message, byte[] signature, byte[] mac) {
 		String delimeter = ";;;";
-		String communication = message.toString()+delimeter+signature.toString()+delimeter+mac.toString();
+		String communication = message.toString() + delimeter + signature.toString() + delimeter + mac.toString();
 		return communication.getBytes();
 	}
 

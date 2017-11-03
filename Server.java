@@ -99,13 +99,13 @@ class ClientHandler extends Thread {
                                     int count = clientStream.read(msg);
                                     msg = Arrays.copyOf(msg, count);
                                     //Gurj code here
-                                    System.out.println("decrypted client: " + s);
+                                   /* System.out.println("decrypted client: " + s);
                                     if (s.equals("bye")) {
                                           System.out.println("Client closed connection");
                                           disconnect();
                                           connected = false;
                                           break;
-                                    }
+                                    }*/
                               }
                         } catch (IOException ioe) {
                               System.out.println("Client closed connection");

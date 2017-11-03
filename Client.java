@@ -58,10 +58,10 @@ public class Client {
                                     int count = serverStream.read(msg);
                                     msg = Arrays.copyOf(msg, count);
                                     //Gurj code here
-                                    if(!Cryptography.verify(s, Paths.get("client_private", "p") , security.authentication)){
+                                   /* if(!Cryptography.verify(s, Paths.get("client_private", "p") , security.authentication)){
                                           System.out.println("Signature of client does not match private key!");
                                     }
-                                    System.out.println("server: " + s);
+                                    System.out.println("server: " + s);*/
                               }
                         } catch (IOException ioe) {
                               System.out.println("Closed Connection with Server");
