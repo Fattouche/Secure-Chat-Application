@@ -37,4 +37,10 @@ class Communication{
 				this.mac = portions[2].getBytes("UTF8");
 			}
 		}
+
+		public byte[] format(byte[] message, byte[] signature, byte[] mac) {
+			String delimeter = ";;;";
+			String communication = message.toString() + delimeter + signature.toString() + delimeter + mac.toString();
+			return communication.getBytes();
+	}
 }
