@@ -8,7 +8,7 @@ import java.io.*;
 import java.util.*;
 import java.nio.file.*;
 
-public class AES {
+public class Cryptography {
 	static private int ivSize = 16;
 	static private int keySize = 16;
 
