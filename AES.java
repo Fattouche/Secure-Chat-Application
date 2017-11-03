@@ -14,19 +14,18 @@ public class AES {
 	public static byte[] digestMessage(String message) {
 		try{
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
-	        digest.update(message.getBytes());
-	        byte[] messageDigest = digest.digest();
-	        return messageDigest;
-	    }
-	    catch (Exception e) {
+			digest.update(message.getBytes());
+			byte[] messageDigest = digest.digest();
+			return messageDigest;
+		}
+		catch (Exception e) {
 			System.out.println("Error in AES.digestMessage: " + e);
 			return null;
 		}
 	}
 
 	public static Boolean compareDigests(byte[] d1, byte[] d2) {
-		if (!Arrays.equals(d1, d2))
-			return false;
+		if (!Arrays.equals(d1, d2)) return false;
 		return true;
 	}
 
