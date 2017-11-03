@@ -6,16 +6,17 @@ import java.nio.file.*;
 public class Server {
       public static void main(String[] args) throws Exception {
             int portNumber = 8080;
+            Security security = null;
             if (args.length != 1) {
                   System.out.println("Usage: java server <port>");
-            } else {
-                  Security security = new Security();
-
-                  if (security.authentication) {
-                        PasswordTools.verifyPassword(Paths.get("server_private", "pass"));
-                  }
-                  portNumber = Integer.parseInt(args[0]);
+                  return;
             }
+            security = new Security();
+
+            if (security.authentication) {
+                  PasswordTools.verifyPassword(Paths.get("server_private", "pass"));
+            }
+            portNumber = Integer.parseInt(args[0]);
 
             boolean isOver = false;
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
@@ -25,8 +26,8 @@ public class Server {
 
             while (!isOver) {
                   Socket socket = server.accept();
-                  System.err.println("Accepted connection from client");
-                  ClientHandler handler = new ClientHandler(socket, input);
+                  System.err.println("Open session message recieved, comparing protocol");
+                  ClientHandler handler = new ClientHandler(socket, input, security);
                   handler.handleClient();
             }
             server.close();
@@ -36,32 +37,49 @@ public class Server {
 
 class ClientHandler extends Thread {
       static BufferedReader input;
-      static OutputStream serverMessage;
-      static InputStream clientMessage;
+      static OutputStream serverStream;
+      static InputStream clientStream;
       static Socket socket;
       static boolean connected;
+      static Security security;
+      static byte[] key = null;
 
-      public ClientHandler(Socket socket, BufferedReader input) {
+      public ClientHandler(Socket socket, BufferedReader input, Security security) {
             this.socket = socket;
             this.input = input;
+            this.security = security;
             this.connected = true;
       }
 
       public static void handleClient() throws IOException {
+            serverStream = socket.getOutputStream();
+            clientStream = socket.getInputStream();
+            try {
+                  if (invalidProtocol(clientStream, serverStream)) {
+                        return;
+                  }
+            } catch (IOException ioe) {
+                  System.out.println("Client closed connection");
+            }
+            if (security.confidentiality || security.integrity) {
+                  key = DoServerDiffie.doServerDiffie(clientStream, serverStream);
+            }
+
             Thread sendMessage = new Thread(new Runnable() {
                   @Override
                   public void run() {
                         String send;
+                        byte[] encrypted;
                         try {
-                              serverMessage = socket.getOutputStream();
                               while (connected) {
                                     send = input.readLine();
                                     if (!socket.isClosed()) {
-                                          serverMessage.write(send.getBytes());
+                                          encrypted = Cryptography.encrypt(send.getBytes(), key);
+                                          serverStream.write(encrypted);
                                     }
                               }
                         } catch (IOException ioe) {
-                              System.out.println("Error closing ...");
+                              System.out.println("Client closed connection");
                         }
                   }
             });
@@ -70,12 +88,12 @@ class ClientHandler extends Thread {
                   @Override
                   public void run() {
                         try {
-                              clientMessage = socket.getInputStream();
                               while (true) {
                                     byte[] msg = new byte[16 * 1024];
-                                    int count = clientMessage.read(msg);
-                                    String s = new String(msg, 0, count, "US-ASCII");
-                                    System.out.println("client: " + s);
+                                    int count = clientStream.read(msg);
+                                    msg = Arrays.copyOf(msg, count);
+                                    String s = Cryptography.decrypt(msg, key);
+                                    System.out.println("decrypted client: " + s);
                                     if (s.equals("bye")) {
                                           System.out.println("Client closed connection");
                                           disconnect();
@@ -84,7 +102,7 @@ class ClientHandler extends Thread {
                                     }
                               }
                         } catch (IOException ioe) {
-                              System.out.println("Error closing ...");
+                              System.out.println("Client closed connection");
                         }
                   }
             });
@@ -95,11 +113,40 @@ class ClientHandler extends Thread {
 
       public static void disconnect() {
             try {
-                  serverMessage.close();
-                  clientMessage.close();
+                  serverStream.close();
+                  clientStream.close();
                   socket.close();
             } catch (IOException e) {
                   e.printStackTrace();
             }
+      }
+
+      public static boolean invalidProtocol(InputStream clientStream, OutputStream serverStream) throws IOException {
+            byte[] msg = new byte[16 * 1024];
+            int count = clientStream.read(msg);
+            String s = new String(msg, 0, count, "US-ASCII");
+            String errorLog = "invalid security protocol, dropping connection";
+            if ((s.contains("a") && !security.authentication) || (!s.contains("a") && security.authentication)) {
+                  serverStream.write("invalid security protocol, authentication not matching. re-establish connection"
+                              .getBytes());
+                  System.out.println(errorLog);
+                  return true;
+            }
+            if ((s.contains("i") && !security.integrity) || (!s.contains("i") && security.integrity)) {
+                  serverStream.write(
+                              "invalid security protocol, integrity not matching. re-establish connection".getBytes());
+                  System.out.println(errorLog);
+                  return true;
+            }
+            if ((s.contains("c") && !security.confidentiality) || (!s.contains("c") && security.confidentiality)) {
+                  serverStream.write("invalid security protocol, confidentiality not matching. re-establish connection"
+                              .getBytes());
+                  System.out.println(errorLog);
+                  return true;
+            }
+            String reply = "Valid protocol, beginning DH";
+            System.out.println(reply);
+            serverStream.write(reply.getBytes());
+            return false;
       }
 }

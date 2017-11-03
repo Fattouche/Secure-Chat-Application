@@ -129,7 +129,7 @@ class DiffieTools {
 }
 
 class DoServerDiffie {
-	void doServerDiffie(InputStream in, OutputStream out) {
+	public static byte[] doServerDiffie(InputStream in, OutputStream out) {
 		byte[] clientPubKeyEnc = new byte[16 * 1024];
 		DiffieTools serverTools;
 		PublicKey serverPubKey;
@@ -158,11 +158,12 @@ class DoServerDiffie {
 		} catch (Exception ioe) {
 			System.out.println(ioe);
 		}
+		return serverSharedSecret;
 	}
 }
 
 class DoClientDiffie {
-	public void doClientDiffie(InputStream in, OutputStream out) {
+	public static byte[] doClientDiffie(InputStream in, OutputStream out) {
 		byte[] serverPubKeyEnc = new byte[16 * 1024];
 		DiffieTools clientTools;
 		PublicKey clientPubKey;
@@ -186,11 +187,9 @@ class DoClientDiffie {
 
 			clientAgree.doPhase(serverPubKey, true);
 			numRead = clientAgree.generateSecret(clientSharedSecret, 0);
-
-			out.write(clientSharedSecret);
-
 		} catch (Exception ioe) {
 			System.out.println(ioe);
 		}
+		return clientSharedSecret;
 	}
 }
