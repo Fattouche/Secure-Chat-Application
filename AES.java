@@ -11,6 +11,28 @@ public class AES {
 	static private int ivSize = 16;
 	static private int keySize = 16;
 
+	public static Boolean compareMAC(byte[] m1, byte[] m2) throws IOException {
+		if (!Arrays.equals(m1, m2))
+			return false;
+		return true;
+	}
+
+	public static byte[] generateMAC(String message, String key) throws IOException {
+		try {
+			//Cast key to a byte array and generate a SecretKeySpec needed for mac.init
+			SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
+
+			// Generate MAC
+			Mac mac = Mac.getInstance("HmacSHA256");
+			mac.init(keySpec);
+			byte[] result = mac.doFinal(message.getBytes());
+			return result;
+		} catch (Exception e) {
+			System.out.println("Error in AES.generateMAC: " + e);
+			return null;
+		}
+	}
+
 	public static byte[] digestMessage(String message) {
 		try{
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
