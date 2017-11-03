@@ -22,13 +22,15 @@ public class Client {
                                     send = input.readLine();
                                     clientMessage.write(send.getBytes());
                                     if (send.toString().equals("bye")) {
-                                          System.out.println("Closed Connection with Server");
+                                          input.close();
+                                          serverMessage.close();
+                                          clientMessage.close();
                                           socket.close();
                                           break;
                                     }
                               }
                         } catch (IOException ioe) {
-                              System.out.println("Error closing ...");
+                              System.out.println("Closed Connection with Server");
                         }
                   }
             });
@@ -44,7 +46,7 @@ public class Client {
                                     System.out.println("server: " + s);
                               }
                         } catch (IOException ioe) {
-                              System.out.println("Error closing ...");
+                              System.out.println("Closed Connection with Server");
                         }
                   }
             });
