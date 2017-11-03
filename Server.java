@@ -69,12 +69,13 @@ class ClientHandler extends Thread {
                   @Override
                   public void run() {
                         String send;
+                        byte[] encrypted;
                         try {
                               while (connected) {
                                     send = input.readLine();
                                     if (!socket.isClosed()) {
-                                          AES.encrypt(send, key);
-                                          serverStream.write(send.getBytes());
+                                          encrypted = Cryptography.encrypt(send.getBytes(), key);
+                                          serverStream.write(encrypted);
                                     }
                               }
                         } catch (IOException ioe) {
@@ -90,7 +91,8 @@ class ClientHandler extends Thread {
                               while (true) {
                                     byte[] msg = new byte[16 * 1024];
                                     int count = clientStream.read(msg);
-                                    String s = AES.decrypt(msg, key);
+                                    msg = Arrays.copyOf(msg, count);
+                                    String s = Cryptography.decrypt(msg, key);
                                     System.out.println("decrypted client: " + s);
                                     if (s.equals("bye")) {
                                           System.out.println("Client closed connection");

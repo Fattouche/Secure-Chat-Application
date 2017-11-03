@@ -32,7 +32,7 @@ public class Client {
                         try {
                               while (true) {
                                     send = input.readLine();
-                                    byte[] message = AES.encrypt(send, key);
+                                    byte[] message = Cryptography.encrypt(send.getBytes(), key);
                                     clientStream.write(message);
                                     if (send.toString().equals("bye")) {
                                           disconnect(input, serverStream, clientStream, socket);
@@ -52,7 +52,8 @@ public class Client {
                               while (true) {
                                     byte[] msg = new byte[16 * 1024];
                                     int count = serverStream.read(msg);
-                                    String s = AES.decrypt(msg, key);
+                                    msg = Arrays.copyOf(msg, count);
+                                    String s = Cryptography.decrypt(msg, key);
                                     System.out.println("decrypted server: " + s);
                               }
                         } catch (IOException ioe) {
