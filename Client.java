@@ -6,7 +6,7 @@ import java.nio.file.*;
 public class Client {
       static Security security;
       static byte[] key = null;
-      
+
       public static void startClient(String serverName, int serverPort) throws UnknownHostException, IOException {
             System.out.println("Trying to connect to host: " + serverName + ": " + serverPort);
             Socket socket = new Socket(serverName, serverPort);
@@ -109,22 +109,23 @@ public class Client {
       public static void main(String args[]) {
             if (args.length != 2) {
                   System.out.println("Usage: java Client <host> <port>");
-            } else {
-                  security = new Security();
-
-                  if (security.authentication) {
-                        PasswordTools.verifyPassword(Paths.get("client_private", "pass"));
-                  }
-
-                  String hostName = args[0];
-                  int portNumber = Integer.parseInt(args[1]);
-                  try {
-                        startClient(hostName, portNumber);
-                  } catch (UnknownHostException uhe) {
-                        System.out.println("Host unknown: " + uhe.getMessage());
-                  } catch (IOException ioe) {
-                        System.out.println("Unexpected exception: " + ioe.getMessage());
-                  }
+                  return;
             }
+            security = new Security();
+
+            if (security.authentication) {
+                  PasswordTools.verifyPassword(Paths.get("client_private", "pass"));
+            }
+
+            String hostName = args[0];
+            int portNumber = Integer.parseInt(args[1]);
+            try {
+                  startClient(hostName, portNumber);
+            } catch (UnknownHostException uhe) {
+                  System.out.println("Host unknown: " + uhe.getMessage());
+            } catch (IOException ioe) {
+                  System.out.println("Unexpected exception: " + ioe.getMessage());
+            }
+
       }
 }

@@ -9,14 +9,14 @@ public class Server {
             Security security = null;
             if (args.length != 1) {
                   System.out.println("Usage: java server <port>");
-            } else {
-                  security = new Security();
-
-                  if (security.authentication) {
-                        PasswordTools.verifyPassword(Paths.get("server_private", "pass"));
-                  }
-                  portNumber = Integer.parseInt(args[0]);
+                  return;
             }
+            security = new Security();
+
+            if (security.authentication) {
+                  PasswordTools.verifyPassword(Paths.get("server_private", "pass"));
+            }
+            portNumber = Integer.parseInt(args[0]);
 
             boolean isOver = false;
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
