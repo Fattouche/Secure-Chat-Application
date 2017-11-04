@@ -88,7 +88,7 @@ public class Cryptography {
 		byte[] sign = null;
 		try {
 			if (!authenticity) {
-				return plainText;
+				return "".getBytes();
 			}
 			PrivateKey privKey = readPrivateKey(path);
 			Signature signer = Signature.getInstance("SHA256withRSA");
