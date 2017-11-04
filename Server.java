@@ -2,6 +2,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.nio.file.*;
+import javax.crypto.Mac;
 
 public class Server {
       public static void main(String[] args) throws Exception {
@@ -44,6 +45,7 @@ class ClientHandler extends Thread {
       static Security security;
       static byte[] key = null;
       static Cryptography crypto;
+      static Communication communication;
 
       public ClientHandler(Socket socket, BufferedReader input, Security security) {
             this.socket = socket;
@@ -56,6 +58,7 @@ class ClientHandler extends Thread {
             serverStream = socket.getOutputStream();
             clientStream = socket.getInputStream();
             crypto = new Cryptography();
+            communication = new Communication();
 
             try {
                   if (invalidProtocol(clientStream, serverStream)) {
@@ -77,11 +80,14 @@ class ClientHandler extends Thread {
                               while (connected) {
                                     send = input.readLine();
                                     if (!socket.isClosed()) {
-                                          byte[] signature =  crypto.sign(send.getBytes(), Paths.get("server_private", "private.der") , security.authentication);
+                                          byte[] signature = crypto.sign(send.getBytes(),
+                                                      Paths.get("server_private", "private.der"),
+                                                      security.authentication);
                                           byte[] mac = crypto.generateMAC(send.getBytes(), key, security.integrity);
-                                          byte[] message = crypto.encrypt(send.getBytes(), key, security.confidentiality);
-                                          byte[] communication = crypto.format(message,signature,mac);
-                                          serverStream.write(communication);
+                                          byte[] message = crypto.encrypt(send.getBytes(), key,
+                                                      security.confidentiality);
+                                          byte[] finalMessage = communication.format(message, signature, mac);
+                                          serverStream.write(finalMessage);
                                     }
                               }
                         } catch (IOException ioe) {
@@ -98,14 +104,14 @@ class ClientHandler extends Thread {
                                     byte[] msg = new byte[16 * 1024];
                                     int count = clientStream.read(msg);
                                     msg = Arrays.copyOf(msg, count);
-                                    //Gurj code here
-                                   /* System.out.println("decrypted client: " + s);
-                                    if (s.equals("bye")) {
+                                    String message = handleMessage(msg);
+                                    System.out.println("client: " + message);
+                                    if (message.equals("bye")) {
                                           System.out.println("Client closed connection");
                                           disconnect();
                                           connected = false;
                                           break;
-                                    }*/
+                                    }
                               }
                         } catch (IOException ioe) {
                               System.out.println("Client closed connection");
@@ -125,6 +131,22 @@ class ClientHandler extends Thread {
             } catch (IOException e) {
                   e.printStackTrace();
             }
+      }
+
+      public static String handleMessage(byte[] message) {
+            communication.parse(message);
+            byte[] msg = crypto.decrypt(communication.message, key, security.confidentiality);
+            System.out.println(msg);
+            if (!crypto.verify(msg, communication.signature, Paths.get("server_private", "publicClient.der"),
+                        security.authentication)) {
+                  System.out.println("Authentication failed, signature from client does not match expected!");
+            }
+            byte[] macActual = crypto.generateMAC(msg, key, security.integrity);
+            byte[] macExpected = communication.mac;
+            if (!crypto.compareMAC(macActual, macExpected)) {
+                  System.out.println("Integrity failed, checksum of client message does not match expected!");
+            }
+            return msg.toString();
       }
 
       public static boolean invalidProtocol(InputStream clientStream, OutputStream serverStream) throws IOException {
