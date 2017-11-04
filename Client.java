@@ -61,8 +61,10 @@ public class Client {
                               while (true) {
                                     byte[] msg = new byte[16 * 1024];
                                     int count = serverStream.read(msg);
-                                    msg = Arrays.copyOf(msg, count);;
-                                    String message = handleMessage(msg);
+                                    msg = Arrays.copyOf(msg, count);
+                                    ;
+                                    String message = communication.handleMessage(msg,
+                                                Paths.get("client_private", "publicServer.der"), crypto, key, security);
                                     System.out.println("server: " + message);
                               }
                         } catch (IOException ioe) {
@@ -73,21 +75,6 @@ public class Client {
 
             sendMessage.start();
             readMessage.start();
-      }
-
-      public static String handleMessage(byte[] message) {
-            communication.parse(message);
-            byte[] msg = crypto.decrypt(communication.message, key, security.confidentiality);
-            if (!crypto.verify(msg, communication.signature, Paths.get("client_private", "publicServer.der"),
-                        security.authentication)) {
-                  System.out.println("Authentication failed, signature from server does not match expected!");
-            }
-            byte[] macActual = crypto.generateMAC(msg, key, security.integrity);
-            byte[] macExpected = communication.mac;
-            if (!crypto.compareMAC(macActual, macExpected)) {
-                  System.out.println("Integrity failed, checksum of server message does not match expected!");
-            }
-            return msg.toString();
       }
 
       public static void disconnect(BufferedReader input, InputStream serverStream, OutputStream clientStream,

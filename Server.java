@@ -104,7 +104,8 @@ class ClientHandler extends Thread {
                                     byte[] msg = new byte[16 * 1024];
                                     int count = clientStream.read(msg);
                                     msg = Arrays.copyOf(msg, count);
-                                    String message = handleMessage(msg);
+                                    String message = communication.handleMessage(msg,
+                                                Paths.get("server_private", "publicClient.der"), crypto, key, security);
                                     System.out.println("client: " + message);
                                     if (message.equals("bye")) {
                                           System.out.println("Client closed connection");
@@ -131,22 +132,6 @@ class ClientHandler extends Thread {
             } catch (IOException e) {
                   e.printStackTrace();
             }
-      }
-
-      public static String handleMessage(byte[] message) {
-            communication.parse(message);
-            byte[] msg = crypto.decrypt(communication.message, key, security.confidentiality);
-            System.out.println(msg);
-            if (!crypto.verify(msg, communication.signature, Paths.get("server_private", "publicClient.der"),
-                        security.authentication)) {
-                  System.out.println("Authentication failed, signature from client does not match expected!");
-            }
-            byte[] macActual = crypto.generateMAC(msg, key, security.integrity);
-            byte[] macExpected = communication.mac;
-            if (!crypto.compareMAC(macActual, macExpected)) {
-                  System.out.println("Integrity failed, checksum of client message does not match expected!");
-            }
-            return msg.toString();
       }
 
       public static boolean invalidProtocol(InputStream clientStream, OutputStream serverStream) throws IOException {

@@ -34,7 +34,10 @@ public class Cryptography {
 		return privateKey;
 	}
 
-	public static Boolean compareMAC(byte[] m1, byte[] m2) {
+	public static Boolean compareMAC(byte[] m1, byte[] m2,  boolean integrity) {
+		if(!integrity){
+			return true;
+		}
 		try {
 			if (!Arrays.equals(m1, m2))
 				return false;
