@@ -21,12 +21,12 @@ class Communication {
 			if (portions[0].equals("")) {
 				System.out.println("The Communication object does not contain the message");
 			} else {
-				message = portions[0].getBytes("UTF8");
+				message = Base64.getDecoder().decode(portions[0].getBytes());
 				if (portions.length > 1) {
-					signature = portions[1].getBytes("UTF8");
+					signature = Base64.getDecoder().decode(portions[1].getBytes());
 				}
 				if (portions.length > 2) {
-					mac = portions[2].getBytes("UTF8");
+					mac = Base64.getDecoder().decode(portions[2].getBytes());
 				}
 			}
 		} catch (Exception e) {
@@ -36,9 +36,14 @@ class Communication {
 
 	public byte[] format(byte[] message, byte[] signature, byte[] mac) {
 		String delimeter = ";;;";
-		String messageString = new String(message);
-		String sigString = new String(signature);
-		String macString = new String(mac);
+		
+		byte[] encodedMessage = Base64.getEncoder().encode(message);
+		byte[] encodedSignature = Base64.getEncoder().encode(signature);
+		byte[] encodedMac = Base64.getEncoder().encode(mac);
+
+		String messageString = new String(encodedMessage);
+		String sigString = new String(encodedSignature);
+		String macString = new String(encodedMac);
 		String communication = messageString + delimeter + sigString + delimeter + macString;
 		return communication.getBytes();
 	}
@@ -57,7 +62,7 @@ class Communication {
 		}
 		String s = "";
 		try {
-			s = new String(msg, "UTF8");
+			s = new String(msg);
 		} catch (Exception e) {
 			System.out.println("byte to string conversion error");
 		}
