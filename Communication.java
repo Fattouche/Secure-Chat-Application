@@ -52,7 +52,7 @@ class Communication {
 			Security security) {
 		parse(information);
 		byte[] msg = crypto.decrypt(message, key, security.confidentiality);
-		if (!crypto.verify(msg, signature, Paths.get("client_private", "publicServer.der"), security.authentication)) {
+		if (!crypto.verify(msg, signature, path, security.authentication)) {
 			System.out.println("Authentication failed, signature from message does not match");
 		}
 		byte[] macActual = crypto.generateMAC(msg, key, Security.integrity);

@@ -115,7 +115,7 @@ public class Cryptography {
 			verifier.initVerify(pubKey);
 			verifier.update(plainText);
 
-			signatureBytes = Base64.getDecoder().decode(signature);
+			signatureBytes = signature;
 			verified = verifier.verify(signatureBytes);
 		} catch (Exception e) {
 			System.out.println("Error in verify");
@@ -189,5 +189,21 @@ public class Cryptography {
 			return null;
 		}
 	}
+
+	/* Code for testing - WILL remove
+	public static void main(String[] args) {
+		String plainText = "hello";
+		String key = "101010";
+		Communication com = new Communication();
+		byte[] signature = sign(plainText.getBytes(), Paths.get("server_private", "private.der"), true);
+		byte[] formatted = com.format(plainText.getBytes(), signature, "".getBytes());
+		// signature = Base64.getEncoder().encode(signature);
+		// String s = new String(signature);
+		// byte[] p = s.getBytes();
+		com.parse(formatted);
+
+		System.out.println(verify(plainText.getBytes(), com.signature, Paths.get("client_private", "publicServer.der"), true));
+	}
+	*/
 
 }
