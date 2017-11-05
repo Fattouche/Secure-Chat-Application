@@ -8,6 +8,8 @@ import java.security.MessageDigest;
 
 //A helper file for comparing password entered with hashed password stored in secure file.
 class PasswordTools {
+
+    //Hash the password and compare it to the hash stored in the file.
     public static boolean validPassword(String password, Path path) {
         byte byteData[] = null;
         byte toCompare[] = null;
@@ -25,6 +27,7 @@ class PasswordTools {
         return false;
     }
 
+    //Prompts the user to enter their password and then verifies it.
     static void verifyPassword(Path path) {
         Scanner reader = new Scanner(System.in);
         System.out.println("What is your password?");

@@ -8,12 +8,16 @@ import java.io.*;
 import java.util.*;
 import java.nio.file.*;
 
+//Class that handles all of the cryptographic functions used by the client and server
 public class Cryptography {
+
+	//Define the needed variables
 	static private int ivSize = 16;
 	static private int keySize = 16;
 	static private PrivateKey privateKey;
 	static private PublicKey publicKey;
 
+	//Reads public key into memory, returns it if already read once.
 	private static PublicKey readPublicKey(Path path)
 			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 		if (publicKey == null) {
@@ -24,6 +28,7 @@ public class Cryptography {
 		return publicKey;
 	}
 
+	//Reads private key into memory, returns the key if already read once.
 	private static PrivateKey readPrivateKey(Path path)
 			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 		if (privateKey == null) {
@@ -34,8 +39,9 @@ public class Cryptography {
 		return privateKey;
 	}
 
-	public static Boolean compareMAC(byte[] m1, byte[] m2,  boolean integrity) {
-		if(!integrity){
+	//Compares 2 message authentication codes if integrity was chosen.
+	public static Boolean compareMAC(byte[] m1, byte[] m2, boolean integrity) {
+		if (!integrity) {
 			return true;
 		}
 		try {
@@ -47,6 +53,7 @@ public class Cryptography {
 		return true;
 	}
 
+	//Generates a message authentication code if integrity was chosen.
 	public static byte[] generateMAC(byte[] message, byte[] key, boolean integrity) {
 		try {
 			if (!integrity) {
@@ -66,6 +73,7 @@ public class Cryptography {
 		}
 	}
 
+	//Helper function for encrypt/decrpt
 	public static byte[] digestMessage(byte[] message) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-1");
@@ -78,12 +86,14 @@ public class Cryptography {
 		}
 	}
 
+	//Compares two digests
 	public static Boolean compareDigests(byte[] d1, byte[] d2) {
 		if (!Arrays.equals(d1, d2))
 			return false;
 		return true;
 	}
 
+	//Combines plaintext with senders private key to create a signature which can be verified using the senders public key.
 	public static byte[] sign(byte[] plainText, Path path, boolean authenticity) {
 		byte[] sign = null;
 		try {
@@ -102,6 +112,7 @@ public class Cryptography {
 		return sign;
 	}
 
+	//Verifies the recieved signature by using the senders public key.
 	public static Boolean verify(byte[] plainText, byte[] signature, Path path, boolean authenticity) {
 		byte[] signatureBytes = null;
 		Signature verifier = null;
@@ -123,6 +134,7 @@ public class Cryptography {
 		return verified;
 	}
 
+	//Encrypts a message using AES symetric keys established during diffie helmen.
 	public static byte[] encrypt(byte[] message, byte[] key, boolean encryption) {
 		try {
 			if (!encryption) {
@@ -158,6 +170,7 @@ public class Cryptography {
 		}
 	}
 
+	//Decrypts the message using symetric AES keys.
 	public static byte[] decrypt(byte[] message, byte[] key, boolean decryption) {
 		try {
 			if (!decryption) {
@@ -189,21 +202,4 @@ public class Cryptography {
 			return null;
 		}
 	}
-
-	/* Code for testing - WILL remove
-	public static void main(String[] args) {
-		String plainText = "hello";
-		String key = "101010";
-		Communication com = new Communication();
-		byte[] signature = sign(plainText.getBytes(), Paths.get("server_private", "private.der"), true);
-		byte[] formatted = com.format(plainText.getBytes(), signature, "".getBytes());
-		// signature = Base64.getEncoder().encode(signature);
-		// String s = new String(signature);
-		// byte[] p = s.getBytes();
-		com.parse(formatted);
-
-		System.out.println(verify(plainText.getBytes(), com.signature, Paths.get("client_private", "publicServer.der"), true));
-	}
-	*/
-
 }

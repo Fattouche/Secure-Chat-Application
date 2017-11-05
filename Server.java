@@ -4,7 +4,9 @@ import java.util.*;
 import java.nio.file.*;
 import javax.crypto.Mac;
 
+//Server side of the chat
 public class Server {
+      //reads users input and listens on the specific port.
       public static void main(String[] args) throws Exception {
             int portNumber = 8080;
             Security security = null;
@@ -14,20 +16,23 @@ public class Server {
             }
             security = new Security();
 
+            //If they want authentication, verify their password.
             if (security.authentication) {
                   PasswordTools.verifyPassword(Paths.get("server_private", "pass"));
             }
             portNumber = Integer.parseInt(args[0]);
 
+            //Setup server
             boolean isOver = false;
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Binding to port " + portNumber);
             ServerSocket server = new ServerSocket(portNumber);
             System.out.println("Server started: " + server);
 
+            //Loops and creates new ClientHandler objects, allows for server to persist even when client closes connection.
             while (!isOver) {
                   Socket socket = server.accept();
-                  System.err.println("Open session message recieved, comparing protocol");
+                  System.err.println("Open session message recieved, comparing protocol.");
                   ClientHandler handler = new ClientHandler(socket, input, security);
                   handler.handleClient();
             }
@@ -36,7 +41,9 @@ public class Server {
       }
 }
 
-class ClientHandler extends Thread {
+//Class used to handle new clients accessing the socket
+class ClientHandler {
+      //Needed variables
       static BufferedReader input;
       static OutputStream serverStream;
       static InputStream clientStream;
@@ -47,6 +54,7 @@ class ClientHandler extends Thread {
       static Cryptography crypto;
       static Communication communication;
 
+      //Constructor for established socket and I/O
       public ClientHandler(Socket socket, BufferedReader input, Security security) {
             this.socket = socket;
             this.input = input;
@@ -54,6 +62,7 @@ class ClientHandler extends Thread {
             this.connected = true;
       }
 
+      //Actually read and write to the client
       public static void handleClient() throws IOException {
             serverStream = socket.getOutputStream();
             clientStream = socket.getInputStream();
@@ -65,12 +74,13 @@ class ClientHandler extends Thread {
                         return;
                   }
             } catch (IOException ioe) {
-                  System.out.println("Client closed connection");
+                  System.out.println("Client closed connection.");
             }
             if (security.confidentiality || security.integrity) {
-                  key = DoServerDiffie.doServerDiffie(clientStream, serverStream);
+                  key = ServerDiffie.doDiffie(clientStream, serverStream);
             }
 
+            //Spins up a thread for reading from input and sending to outputstream
             Thread sendMessage = new Thread(new Runnable() {
                   @Override
                   public void run() {
@@ -80,6 +90,7 @@ class ClientHandler extends Thread {
                               while (connected) {
                                     send = input.readLine();
                                     if (!socket.isClosed()) {
+                                          //Format the message.
                                           byte[] signature = crypto.sign(send.getBytes(),
                                                       Paths.get("server_private", "private.der"),
                                                       security.authentication);
@@ -91,11 +102,12 @@ class ClientHandler extends Thread {
                                     }
                               }
                         } catch (IOException ioe) {
-                              System.out.println("Client closed connection");
+                              System.out.println("Client closed connection.");
                         }
                   }
             });
 
+            //Spin up a thread to read from inputstream and write to command line.
             Thread readMessage = new Thread(new Runnable() {
                   @Override
                   public void run() {
@@ -108,14 +120,14 @@ class ClientHandler extends Thread {
                                                 Paths.get("server_private", "publicClient.der"), crypto, key, security);
                                     System.out.println("client: " + message);
                                     if (message.equals("bye")) {
-                                          System.out.println("Client closed connection");
+                                          System.out.println("Client closed connection.");
                                           disconnect();
                                           connected = false;
                                           break;
                                     }
                               }
                         } catch (IOException ioe) {
-                              System.out.println("Client closed connection");
+                              System.out.println("Client closed connection.");
                         }
                   }
             });
@@ -124,6 +136,7 @@ class ClientHandler extends Thread {
             readMessage.start();
       }
 
+      //Clean up streams.
       public static void disconnect() {
             try {
                   serverStream.close();
@@ -134,30 +147,34 @@ class ClientHandler extends Thread {
             }
       }
 
+      //Recieve protocol from client and validate that it is the same as servers.
       public static boolean invalidProtocol(InputStream clientStream, OutputStream serverStream) throws IOException {
             byte[] msg = new byte[16 * 1024];
             int count = clientStream.read(msg);
             String s = new String(msg, 0, count, "US-ASCII");
-            String errorLog = "invalid security protocol, dropping connection";
+            String errorLog = "invalid security protocol, dropping connection.";
             if ((s.contains("a") && !security.authentication) || (!s.contains("a") && security.authentication)) {
-                  serverStream.write("invalid security protocol, authentication not matching. re-establish connection"
+                  serverStream.write("invalid security protocol, authentication not matching. re-establish connection."
                               .getBytes());
                   System.out.println(errorLog);
                   return true;
             }
             if ((s.contains("i") && !security.integrity) || (!s.contains("i") && security.integrity)) {
                   serverStream.write(
-                              "invalid security protocol, integrity not matching. re-establish connection".getBytes());
+                              "invalid security protocol, integrity not matching. re-establish connection.".getBytes());
                   System.out.println(errorLog);
                   return true;
             }
             if ((s.contains("c") && !security.confidentiality) || (!s.contains("c") && security.confidentiality)) {
-                  serverStream.write("invalid security protocol, confidentiality not matching. re-establish connection"
+                  serverStream.write("invalid security protocol, confidentiality not matching. re-establish connection."
                               .getBytes());
                   System.out.println(errorLog);
                   return true;
             }
-            String reply = "Valid protocol, beginning DH";
+            String reply = "Valid protocol.";
+            if (security.confidentiality || security.integrity) {
+                  reply += "Beginning DH.";
+            }
             System.out.println(reply);
             serverStream.write(reply.getBytes());
             return false;

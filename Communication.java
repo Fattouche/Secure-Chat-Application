@@ -3,12 +3,15 @@ import java.math.BigInteger;
 import java.nio.file.*;
 import java.lang.*;
 
+//Class that handles the functions needed for the client and server to communicate with eachother.
 class Communication {
 
+	//The parsed field values
 	public static byte[] message;
 	public static byte[] signature;
 	public static byte[] mac;
 
+	//Converts a message into the respective message, signature, mac(checksum) fields.
 	public static void parse(byte[] com) {
 		try {
 			String str = new String(com);
@@ -34,9 +37,10 @@ class Communication {
 		}
 	}
 
+	//Formats the message into a string using ;;; as a delimiter between message, signature and mac.
 	public byte[] format(byte[] message, byte[] signature, byte[] mac) {
 		String delimeter = ";;;";
-		
+
 		byte[] encodedMessage = Base64.getEncoder().encode(message);
 		byte[] encodedSignature = Base64.getEncoder().encode(signature);
 		byte[] encodedMac = Base64.getEncoder().encode(mac);
@@ -48,6 +52,9 @@ class Communication {
 		return communication.getBytes();
 	}
 
+	//1. Decrypts the message if confidentiality was chosen.
+	//2. Verifys the signature sent with the message if authentication was chosen.
+	//3. Compares the computed checksum with the recieved checksum if integrity was chosen.
 	public static String handleMessage(byte[] information, Path path, Cryptography crypto, byte[] key,
 			Security security) {
 		parse(information);
