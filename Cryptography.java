@@ -34,13 +34,20 @@ public class Cryptography {
 		return privateKey;
 	}
 
-	public static Boolean compareMAC(byte[] m1, byte[] m2) throws IOException {
-		if (!Arrays.equals(m1, m2))
-			return false;
+	public static Boolean compareMAC(byte[] m1, byte[] m2,  boolean integrity) {
+		if(!integrity){
+			return true;
+		}
+		try {
+			if (!Arrays.equals(m1, m2))
+				return false;
+		} catch (Exception e) {
+			System.out.println("Arrays.equal failure");
+		}
 		return true;
 	}
 
-	public static byte[] generateMAC(byte[] message, byte[] key, boolean integrity) throws IOException {
+	public static byte[] generateMAC(byte[] message, byte[] key, boolean integrity) {
 		try {
 			if (!integrity) {
 				return "".getBytes();
@@ -78,10 +85,10 @@ public class Cryptography {
 	}
 
 	public static byte[] sign(byte[] plainText, Path path, boolean authenticity) {
-		byte[] sign=null;
+		byte[] sign = null;
 		try {
 			if (!authenticity) {
-				return plainText;
+				return "".getBytes();
 			}
 			PrivateKey privKey = readPrivateKey(path);
 			Signature signer = Signature.getInstance("SHA256withRSA");
@@ -108,7 +115,7 @@ public class Cryptography {
 			verifier.initVerify(pubKey);
 			verifier.update(plainText);
 
-			signatureBytes = Base64.getDecoder().decode(signature);
+			signatureBytes = signature;
 			verified = verifier.verify(signatureBytes);
 		} catch (Exception e) {
 			System.out.println("Error in verify");
@@ -159,7 +166,6 @@ public class Cryptography {
 			// Split the encrypted message into IV and Ciphertext
 			byte[] iv = new byte[ivSize];
 
-			System.out.println(message.length);
 			byte[] ciphertext = new byte[message.length - ivSize];
 
 			System.arraycopy(message, 0, iv, 0, ivSize);
@@ -183,5 +189,21 @@ public class Cryptography {
 			return null;
 		}
 	}
+
+	/* Code for testing - WILL remove
+	public static void main(String[] args) {
+		String plainText = "hello";
+		String key = "101010";
+		Communication com = new Communication();
+		byte[] signature = sign(plainText.getBytes(), Paths.get("server_private", "private.der"), true);
+		byte[] formatted = com.format(plainText.getBytes(), signature, "".getBytes());
+		// signature = Base64.getEncoder().encode(signature);
+		// String s = new String(signature);
+		// byte[] p = s.getBytes();
+		com.parse(formatted);
+
+		System.out.println(verify(plainText.getBytes(), com.signature, Paths.get("client_private", "publicServer.der"), true));
+	}
+	*/
 
 }

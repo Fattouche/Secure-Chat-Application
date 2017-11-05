@@ -2,10 +2,13 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.nio.file.*;
+import javax.crypto.Mac;
 
 public class Client {
       static Security security;
       static byte[] key = null;
+      static Communication communication;
+      static Cryptography crypto;
 
       public static void startClient(String serverName, int serverPort) throws UnknownHostException, IOException {
             System.out.println("Trying to connect to host: " + serverName + ": " + serverPort);
@@ -15,7 +18,8 @@ public class Client {
             BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
             OutputStream clientStream = socket.getOutputStream();
             InputStream serverStream = socket.getInputStream();
-            Cryptography crypto = new Cryptography();
+            crypto = new Cryptography();
+            communication = new Communication();
 
             if (invalidProtocol(serverStream, clientStream)) {
                   disconnect(input, serverStream, clientStream, socket);
@@ -33,11 +37,12 @@ public class Client {
                         try {
                               while (true) {
                                     send = input.readLine();
-                                    byte[] signature =  crypto.sign(send.getBytes(), Paths.get("client_private", "private.der") , security.authentication);
+                                    byte[] signature = crypto.sign(send.getBytes(),
+                                                Paths.get("client_private", "private.der"), security.authentication);
                                     byte[] mac = crypto.generateMAC(send.getBytes(), key, security.integrity);
                                     byte[] message = crypto.encrypt(send.getBytes(), key, security.confidentiality);
-                                    byte[] communication = crypto.format(message,signature,mac);
-                                    clientStream.write(communication);
+                                    byte[] formattedMessage = communication.format(message, signature, mac);
+                                    clientStream.write(formattedMessage);
                                     if (send.toString().equals("bye")) {
                                           disconnect(input, serverStream, clientStream, socket);
                                           break;
@@ -57,11 +62,10 @@ public class Client {
                                     byte[] msg = new byte[16 * 1024];
                                     int count = serverStream.read(msg);
                                     msg = Arrays.copyOf(msg, count);
-                                    //Gurj code here
-                                   /* if(!Cryptography.verify(s, Paths.get("client_private", "p") , security.authentication)){
-                                          System.out.println("Signature of client does not match private key!");
-                                    }
-                                    System.out.println("server: " + s);*/
+                                    ;
+                                    String message = communication.handleMessage(msg,
+                                                Paths.get("client_private", "publicServer.der"), crypto, key, security);
+                                    System.out.println("server: " + message);
                               }
                         } catch (IOException ioe) {
                               System.out.println("Closed Connection with Server");
